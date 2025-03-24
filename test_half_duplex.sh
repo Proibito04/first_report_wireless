@@ -201,12 +201,13 @@ android_server() {
   rm -f "$OUTPUT_DIR/host_output_$test_number.txt"
 
   # Push script to Android
-  adb push android_script.sh /storage/emulated/0/script
+  # adb push android_script.sh /storage/emulated/0/script
 
   echo "Starting iperf3 on Android (Test #$test_number)..." | prefix_system_output
 
   # Start the Android iperf3 server process in background and save output
-  adb shell "sh /storage/emulated/0/script/android_script.sh $PORT" >"$OUTPUT_DIR/android_output_$test_number.txt" &
+  adb shell /data/local/tmp/iperf3.18 -s -p $PORT -1 >"$OUTPUT_DIR/android_output_$test_number.txt" &
+  # adb shell "sh /storage/emulated/0/script/android_script.sh $PORT" >"$OUTPUT_DIR/android_output_$test_number.txt" &
 
   # Start a background process to read and prefix the Android output
   tail -f "$OUTPUT_DIR/android_output_$test_number.txt" | prefix_android_output &
@@ -249,19 +250,21 @@ host_server() {
 
   # Ensure server process is terminated when script exits
   trap "kill $server_pid 2>/dev/null" EXIT
+  echo "Server started with PID $server_pid" | prefix_system_output
 
   # Give the server time to initialize
   echo "Waiting for server to initialize..." | prefix_system_output
   sleep 3
 
+
   # Push client script to Android
-  echo "Pushing client script to Android..." | prefix_system_output
-  adb push android_client.sh /storage/emulated/0/script
+  # echo "Pushing client script to Android..." | prefix_system_output
+  # adb push android_client.sh /storage/emulated/0/script
 
   echo "Starting iperf3 client on Android (Test #$test_number)..." | prefix_system_output
 
   # Start the Android iperf3 client process and save output
-  adb shell "sh /storage/emulated/0/script/android_client.sh $PORT $HOST_IP" >"$OUTPUT_DIR/android_output_$test_number.txt"
+  adb shell /data/local/tmp/iperf3.18 -c $HOST_IP -p $PORT >"$OUTPUT_DIR/android_output_$test_number.txt"
 
   # Start a background process to read and prefix the Android output
   tail -f "$OUTPUT_DIR/android_output_$test_number.txt" | prefix_android_output &

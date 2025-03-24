@@ -41,44 +41,77 @@
 ### Tools Used for Measurement
 
 1. **iperf3 on Linux (Ubuntu)** for data transfer testing on the PC.
-2. **iperf3 on Termux (Android)** for data transfer testing on the Tab S7 Plus.
+2. **iperf3 on Termux (Android)** for data transfer testing on the Tab S7 Plus. [repo](https://github.com/davidBar-On/android-iperf3/)
 3. **Router configuration interface** for monitoring real-time load and verifying connection speeds.
 
 ### Types of Tests Performed
 
-- **TCP Throughput Test**:
-    - Measure the effective transmission rate (goodput) and compare it to the theoretical maximum.
-    - Evaluate the impact of packet size, TCP options, and Wi-Fi configuration.
-- **UDP Throughput Test**:
-    - Measure the data transmission rate when using User Datagram Protocol.
-    - Assess packet loss and the reliability trade-offs compared to TCP.
-- **Comparison Test**:
-    - Compare the Ethernet-connected PC and Wi-Fi-connected tablet to observe efficiency differences.
+**TCP Throughput Test**:
+
+- Measure the effective transmission rate (goodput) and compare it to the theoretical maximum.
+- Evaluate the impact of packet size, TCP options, and Wi-Fi configuration.
 
 ### Duration of Tests
 
-- Each test will be run for **60 seconds** per configuration:
-    - Different Wi-Fi bands (2.4 GHz and 5 GHz).
-    - Varying distances (close, medium, and maximum range).
-    - Different levels of network congestion (light, normal, and heavy traffic).
-
-### Metrics Being Measured
-
-1. **Goodput (G)**:
-    - Useful data throughput at the application layer.
-    - Formula: $$ G = \dfrac{\text{Application Layer Data}}{\text{Time to Complete Transfer}}$$
-2. **Efficiency ($η$)**:
-    - Measure of protocol efficiency for TCP/UDP over Ethernet and Wi-Fi.
-    - Example values:
-        - ηTCP=0.949ηTCP​=0.949 (Ethernet)
-        - ηUDP=0.957ηUDP​=0.957 (Ethernet)
-        - ηTCP over Wi-Fi<0.5ηTCP over Wi-Fi​<0.5
-        - ηUDP over Wi-Fi<0.55ηUDP over Wi-Fi​<0.55
-3. **Packet Loss** (UDP Test).
-4. **RTT (Round Trip Time)** (TCP Test).
-5. **Jitter** (UDP Test).
-6. **Maximum Capacity (C)** of the bottleneck link.
-7. **Impact of TCP Options**:
-    - Timestamp, SACK, MSS, Window Scaling.
-
+Each test will be run for **10 seconds** per configuration
+ 
 ## Measuring the goodput
+
+I started this mesurament by create a script that will run the iperf3 for 10 times to 10 times.
+
+### Pre-requisites
+
+On your Android device install iperf3 form the official repo.
+
+### Running the script
+
+Script Usage Instructions
+
+To run the script: `./testhalfduplex.sh <mode> <n_test>`
+
+Where:
+- `<mode>` specifies the test configuration:
+  - 1 = Android device acts as the receiver
+  - 2 = Laptop acts as the receiver
+- `<n_test>` is the number of tests to run (defaults to 10 if not specified)
+
+Additional parameters:
+
+- `-c` Clear all previous test results
+- `-h` Display help information
+- `-r` Generate summary report from existing CSV data without running new tests
+
+The script creates an output folder containing detailed results of each test along with a CSV file that compiles all test metrics for easy analysis. Results include throughput measurements (minimum, maximum, average) and performance stability metrics (standard deviation).
+
+Example commands:
+
+- `./testhalfduplex.sh 1 5` - Run 5 tests with Android as receiver
+- `./testhalfduplex.sh 2` - Run 10 tests with laptop as receiver
+- `./testhalfduplex.sh -r`- Generate summary report from existing data
+
+### Results
+
+Goodput represents the actual useful data transferred per unit of time, excluding protocol overhead.
+
+For **ThinkBook 16 G6 IRL**:
+- Average throughput: 278.03 Mbps
+- TCP/IP overhead (typically ~5-10%): ~13.90-27.80 Mbps
+- Estimated goodput: ~250.23-264.13 Mbps
+
+For **Tab S7 Plus**:
+- Average throughput: ~628.62 Mbps
+- TCP/IP overhead: ~31.43-62.86 Mbps
+- Estimated goodput: ~565.76-597.19 Mbps
+
+Key Observations
+Performance Difference:
+
+1. The Tab S7 Plus achieves approximately **2.26x higher throughput** than the ThinkBook when operating as a server. This significant difference suggests hardware capabilities or network configuration advantages
+2. Stability Analysis:
+ThinkBook shows relatively consistent performance (std dev range: 3.58-37.99)
+Tab S7 Plus shows generally stable performance.
+3. Performance Ranges:
+ThinkBook: 167-382 Mbps (215 Mbps range)
+Tab S7 Plus: 550-682 Mbps (132 Mbps range, excluding Test 8)
+
+
