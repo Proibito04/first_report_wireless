@@ -1,0 +1,21 @@
+Starting iperf3 in port 5203
+-----------------------------------------------------------
+Server listening on 5203 (test #1)
+-----------------------------------------------------------
+Accepted connection from 192.168.1.42, port 38590
+[  5] local 192.168.1.16 port 5203 connected to 192.168.1.42 port 38596
+[ ID] Interval           Transfer     Bitrate
+[  5]   0.00-1.00   sec  28.0 MBytes   235 Mbits/sec                  
+[  5]   1.00-2.00   sec  20.8 MBytes   174 Mbits/sec                  
+[  5]   2.00-3.00   sec  22.6 MBytes   190 Mbits/sec                  
+[  5]   3.00-4.00   sec  23.0 MBytes   193 Mbits/sec                  
+[  5]   4.00-5.00   sec  30.6 MBytes   257 Mbits/sec                  
+[  5]   5.00-6.00   sec  42.1 MBytes   353 Mbits/sec                  
+[  5]   6.00-7.00   sec  39.9 MBytes   334 Mbits/sec                  
+[  5]   7.00-8.00   sec  40.2 MBytes   338 Mbits/sec                  
+[  5]   8.00-9.00   sec  42.1 MBytes   353 Mbits/sec                  
+[  5]   9.00-10.00  sec  40.2 MBytes   338 Mbits/sec                  
+[  5]  10.00-10.00  sec   128 KBytes   424 Mbits/sec                  
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate
+[  5]   0.00-10.00  sec   330 MBytes   277 Mbits/sec                  receiver
