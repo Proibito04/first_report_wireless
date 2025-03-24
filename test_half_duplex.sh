@@ -220,7 +220,7 @@ android_server() {
 
   echo "Wait 10 seconds..." | prefix_system_output
   # Run the client and save output
-  iperf3 -c 192.168.1.16 -p 5203 | tee "$OUTPUT_DIR/host_output_$test_number.txt" | prefix_host_output
+  iperf3 -c 192.168.1.16 -p $PORT | tee "$OUTPUT_DIR/host_output_$test_number.txt" | prefix_host_output
 
   echo "Test #$test_number completed" | prefix_system_output
   # Give tail time to catch up with final output before potentially exiting
@@ -231,8 +231,63 @@ android_server() {
 
   # Extract statistics
   # extract_statistics "$OUTPUT_DIR/host_output_$test_number.txt" "Client" "$test_number"
-  extract_statistics "$OUTPUT_DIR/android_output_$test_number.txt" "Android S7" "$test_number"
+  extract_statistics "$OUTPUT_DIR/android_output_$test_number.txt" "Android Tab S7 Plus" "$test_number"
 }
+
+host_server() {
+  local test_number=$1
+  local HOST_IP=$(hostname -I | awk '{print $1}')
+
+  # Clear previous output files for this test
+  rm -f "$OUTPUT_DIR/android_output_$test_number.txt"
+  rm -f "$OUTPUT_DIR/host_output_$test_number.txt"
+
+  # Start iperf3 server on host
+  echo "Starting iperf3 server on host (Test #$test_number)..." | prefix_system_output
+  iperf3 -s -p $PORT -1 | tee "$OUTPUT_DIR/host_output_$test_number.txt" | prefix_host_output &
+  server_pid=$!
+
+  # Ensure server process is terminated when script exits
+  trap "kill $server_pid 2>/dev/null" EXIT
+
+  # Give the server time to initialize
+  echo "Waiting for server to initialize..." | prefix_system_output
+  sleep 3
+
+  # Push client script to Android
+  echo "Pushing client script to Android..." | prefix_system_output
+  adb push android_client.sh /storage/emulated/0/script
+
+  echo "Starting iperf3 client on Android (Test #$test_number)..." | prefix_system_output
+
+  # Start the Android iperf3 client process and save output
+  adb shell "sh /storage/emulated/0/script/android_client.sh $PORT $HOST_IP" >"$OUTPUT_DIR/android_output_$test_number.txt"
+
+  # Start a background process to read and prefix the Android output
+  tail -f "$OUTPUT_DIR/android_output_$test_number.txt" | prefix_android_output &
+  tail_pid=$!
+
+  # Ensure tail process is terminated when script exits
+  trap "kill $tail_pid 2>/dev/null; kill $server_pid 2>/dev/null" EXIT
+
+  echo "Test running..." | prefix_system_output
+  
+
+  echo "Test #$test_number completed" | prefix_system_output
+  
+  # Give tail time to catch up with final output before potentially exiting
+  sleep 2
+
+  # Kill the processes for this iteration
+  kill $tail_pid 2>/dev/null
+  kill $server_pid 2>/dev/null
+
+  # Extract statistics
+  extract_statistics "$OUTPUT_DIR/host_output_$test_number.txt" "21KH ThinkBook 16 G6 IRL" "$test_number"
+  # Uncomment if you need Android statistics too
+  # extract_statistics "$OUTPUT_DIR/android_output_$test_number.txt" "Android Tab S7 Plus" "$test_number"
+}
+
 
 # Check for arguments
 if [ $# -eq 0 ]; then
@@ -262,8 +317,21 @@ case $1 in
   echo "All tests completed. CSV report available at $CSV_REPORT" | prefix_system_output
   ;;
 2)
-  # Add your custom command here for option 2
-  echo "Running another thing..."
+  times=${2:-10}
+  time_required=$((times * 10))
+  echo "Starting $times tests this gonna take approximately $time_required seconds" | prefix_system_output
+
+  # For the CSV report
+  initialize_csv_report
+
+  for i in $(seq $times); do
+    echo "Running test $i of $times..." | prefix_system_output
+    host_server "$i"
+    sleep 2
+  done
+
+
+  
   ;;
 -h | --help)
   display_help
