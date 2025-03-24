@@ -167,12 +167,16 @@
   },
   "active": "8d5cfdca9b8e594f",
   "lastOpenFiles": [
-    "output/host_output.txt",
-    "output/android_output.txt",
-    "output",
-    "host_output.txt",
-    "android_output.txt",
-    "android_script.sh",
-    "test_half_duplex.sh"
+    "output/host_output_10.txt",
+    "output/android_output_10.txt",
+    "output/host_output_9.txt",
+    "output/android_output_9.txt",
+    "output/host_output_8.txt",
+    "output/android_output_8.txt",
+    "output/host_output_7.txt",
+    "output/android_output_7.txt",
+    "output/host_output_6.txt",
+    "output/android_output_6.txt",
+    "output/host_output_5.txt"
   ]
 }
