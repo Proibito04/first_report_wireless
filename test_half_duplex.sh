@@ -3,8 +3,8 @@
 PORT=5203
 OUTPUT_DIR="output"
 CSV_REPORT="$OUTPUT_DIR/performance_report.csv"
-IP=16
-DEVICE_NAME="Android Tab S7 Plus"
+IP=170
+DEVICE_NAME="Android S24 Ultra"
 
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
@@ -198,6 +198,7 @@ clear_output() {
 # android server
 android_server() {
   local test_number=$1
+  local HOST_IP=$(hostname -I | awk '{print $1}')
 
   # Clear previous output files for this test
   rm -f "$OUTPUT_DIR/android_output_$test_number.txt"
@@ -224,7 +225,7 @@ android_server() {
 
   echo "Wait 10 seconds..." | prefix_system_output
   # Run the client and save output
-  iperf3 -c 192.168.1.$IP -p $PORT | tee "$OUTPUT_DIR/host_output_$test_number.txt" | prefix_host_output
+  iperf3 -c 192.168.1.$IP -p $PORT -B $HOST_IP | tee "$OUTPUT_DIR/host_output_$test_number.txt" | prefix_host_output
 
   echo "Test #$test_number completed" | prefix_system_output
   # Give tail time to catch up with final output before potentially exiting
@@ -234,7 +235,7 @@ android_server() {
   kill $tail_pid 2>/dev/null
 
   # Extract statistics
-  # extract_statistics "$OUTPUT_DIR/host_output_$test_number.txt" "Client" "$test_number"
+  extract_statistics "$OUTPUT_DIR/host_output_$test_number.txt" "Laptop" "$test_number"
   extract_statistics "$OUTPUT_DIR/android_output_$test_number.txt" "$DEVICE_NAME" "$test_number"
 }
 
@@ -289,9 +290,9 @@ host_server() {
   kill $server_pid 2>/dev/null
 
   # Extract statistics
-  extract_statistics "$OUTPUT_DIR/host_output_$test_number.txt" "21KH ThinkBook 16 G6 IRL" "$test_number"
   # Uncomment if you need Android statistics too
-  # extract_statistics "$OUTPUT_DIR/android_output_$test_number.txt" "Android Tab S7 Plus" "$test_number"
+  extract_statistics "$OUTPUT_DIR/host_output_$test_number.txt" "21KH ThinkBook 16 G6 IRL" "$test_number"
+  extract_statistics "$OUTPUT_DIR/android_output_$test_number.txt" "$DEVICE_NAME" "$test_number"
 }
 
 
