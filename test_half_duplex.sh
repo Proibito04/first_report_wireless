@@ -3,6 +3,8 @@
 PORT=5203
 OUTPUT_DIR="output"
 CSV_REPORT="$OUTPUT_DIR/performance_report.csv"
+IP=16
+DEVICE_NAME="Android Tab S7 Plus"
 
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
@@ -22,6 +24,7 @@ display_help() {
   echo "  -c  Clear all output files"
   echo "  -h  Display this help message"
   echo "  -r  Generate summary report from existing CSV data"
+  echo "  -i  Install adb on your device"
 }
 
 # Function to add prefix to Android output with color
@@ -206,7 +209,7 @@ android_server() {
   echo "Starting iperf3 on Android (Test #$test_number)..." | prefix_system_output
 
   # Start the Android iperf3 server process in background and save output
-  adb shell /data/local/tmp/iperf3.18 -s -p $PORT -1 >"$OUTPUT_DIR/android_output_$test_number.txt" &
+  adb shell /data/local/tmp/iperf3 -s -p $PORT -1 >"$OUTPUT_DIR/android_output_$test_number.txt" &
   # adb shell "sh /storage/emulated/0/script/android_script.sh $PORT" >"$OUTPUT_DIR/android_output_$test_number.txt" &
 
   # Start a background process to read and prefix the Android output
@@ -221,7 +224,7 @@ android_server() {
 
   echo "Wait 10 seconds..." | prefix_system_output
   # Run the client and save output
-  iperf3 -c 192.168.1.16 -p $PORT | tee "$OUTPUT_DIR/host_output_$test_number.txt" | prefix_host_output
+  iperf3 -c 192.168.1.$IP -p $PORT | tee "$OUTPUT_DIR/host_output_$test_number.txt" | prefix_host_output
 
   echo "Test #$test_number completed" | prefix_system_output
   # Give tail time to catch up with final output before potentially exiting
@@ -232,7 +235,7 @@ android_server() {
 
   # Extract statistics
   # extract_statistics "$OUTPUT_DIR/host_output_$test_number.txt" "Client" "$test_number"
-  extract_statistics "$OUTPUT_DIR/android_output_$test_number.txt" "Android Tab S7 Plus" "$test_number"
+  extract_statistics "$OUTPUT_DIR/android_output_$test_number.txt" "$DEVICE_NAME" "$test_number"
 }
 
 host_server() {
@@ -245,7 +248,7 @@ host_server() {
 
   # Start iperf3 server on host
   echo "Starting iperf3 server on host (Test #$test_number)..." | prefix_system_output
-  iperf3 -s -p $PORT -1 | tee "$OUTPUT_DIR/host_output_$test_number.txt" | prefix_host_output &
+  iperf3 -s -p $PORT -B $HOST_IP -1  | tee "$OUTPUT_DIR/host_output_$test_number.txt" | prefix_host_output &
   server_pid=$!
 
   # Ensure server process is terminated when script exits
@@ -264,7 +267,7 @@ host_server() {
   echo "Starting iperf3 client on Android (Test #$test_number)..." | prefix_system_output
 
   # Start the Android iperf3 client process and save output
-  adb shell /data/local/tmp/iperf3.18 -c $HOST_IP -p $PORT >"$OUTPUT_DIR/android_output_$test_number.txt"
+  adb shell /data/local/tmp/iperf3 -c $HOST_IP -p $PORT >"$OUTPUT_DIR/android_output_$test_number.txt"
 
   # Start a background process to read and prefix the Android output
   tail -f "$OUTPUT_DIR/android_output_$test_number.txt" | prefix_android_output &
@@ -344,6 +347,11 @@ case $1 in
   ;;
 -r)
   generate_summary_report
+  ;;
+-i)
+  adb push ./iperf3.18 /data/local/tmp/iperf3 | prefix_system_output
+  adb shell chmod 777 /data/local/tmp/iperf3
+  echo "Installation successful" | prefix_system_output
   ;;
 *)
   echo "Invalid option: $1"
